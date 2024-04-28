@@ -106,6 +106,16 @@
                        HorizontalAlignment="Left"
                        Margin="330 375 0 0"
                        Foreground="CornflowerBlue"/>
+            <Button Content="New Coord"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                x:Name="btn_Start_Copy"
+                FontSize="20"
+                Width="122"
+                Height="50"
+                FontWeight="Medium"
+                Margin="330,237,0,0"
+                Click="btn_new_Click"/>
         </Grid>
     </Grid>
 </Window>
