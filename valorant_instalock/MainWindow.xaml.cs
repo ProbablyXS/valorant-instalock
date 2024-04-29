@@ -17,37 +17,33 @@ namespace valorant_instalock
         public MainWindow()
         {
             InitializeComponent();
-            Agent.SelectedAgent = Agent.GetAgentCoordinatesByName("default");
+            textbox1.Visibility = Visibility.Hidden;
+            btn_Start_Copy1.Visibility = Visibility.Hidden;
         }
 
         Timer recognitionTimer = new Timer() { Interval = 300 };
         Timer valorantTimer = new Timer() { Interval = 5000 };
+        
+        IniFile MyIni = new IniFile("agent.ini");
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             recognitionTimer.Elapsed += RecognitionTimer_Elapsed;
             valorantTimer.Elapsed += ValorantTimer_Elapsed;
 
-            if (System.IO.File.Exists("config.ini"))
+            if (System.IO.File.Exists("agent.ini"))
             {
-                Agent.agentCoordinates.Add(System.IO.File.ReadAllText("config.ini").Split('=').First().Trim(), new Coordinate(Convert.ToInt32(System.IO.File.ReadAllText("config.ini").Split('=').Last().Split(',').First()), Convert.ToInt32(System.IO.File.ReadAllText("config.ini").Split('=').Last().Split(',').Last())));
-
-                //System.IO.File.AppendAllText("config.ini", "default=" + position.X + "," + position.Y);
+                string[] keys = MyIni.ReadAllKeysInSection("Valorant Instalocker");
+                foreach (string key in keys)
+                {
+                    lb_Agents.Items.Add(key);
+                }
+                //string[] agents = data;
+                //foreach (var agent in data)
+                //{
+                //    lb_Agents.Items.Add(agent);
+                //}
             }
-            else
-            {
-                System.IO.File.AppendAllText("config.ini", "default=" + 0 + "," + 0);
-                Agent.agentCoordinates.Add(System.IO.File.ReadAllText("config.ini").Split('=').First().Trim(), new Coordinate(Convert.ToInt32(System.IO.File.ReadAllText("config.ini").Split('=').Last().Split(',').First()), Convert.ToInt32(System.IO.File.ReadAllText("config.ini").Split('=').Last().Split(',').Last())));
-            }
-
-            string[] agents = Agent.getAgents();
-            foreach (string agent in agents)
-            {
-                lb_Agents.Items.Add(agent);
-            }
-
-            lb_Agents.SelectedIndex = 0;
-            Agent.SelectedAgent = Agent.GetAgentCoordinatesByName("default");
         }
 
         private void ValorantTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -81,12 +77,29 @@ namespace valorant_instalock
 
         private void lb_Agents_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (lb_Agents.Items.Count == 0)
+            {
+                return;
+            }
+
+            Agent.SelectedagentName = lb_Agents.SelectedItem.ToString();
+
             Agent.SelectedAgent = Agent.GetAgentCoordinatesByName(lb_Agents.SelectedItem.ToString().ToLower());
-            lbl_SelectedAgent.Text = Agent.GetAgentNameByCoordinates(Agent.SelectedAgent.X, Agent.SelectedAgent.Y);
+            labelXY.Text = "X: " + Agent.SelectedAgent.X + " Y: " + Agent.SelectedAgent.Y;
+            labelagent.Text = "Selected Agent: " + Agent.SelectedagentName;
+            //lbl_SelectedAgent.Text = Agent.GetAgentNameByCoordinates(Agent.SelectedAgent.X, Agent.SelectedAgent.Y);
+
+
         }
 
         private void btn_Start_Click(object sender, RoutedEventArgs e)
         {
+
+            if (lb_Agents.Items.Count == 0)
+            {
+                return;
+            }
+
             if (Process.GetProcessesByName("VALORANT-Win64-Shipping").Length > 0)
             {
                 valorantTimer.Start();
@@ -121,35 +134,32 @@ namespace valorant_instalock
             if (e.Key == Key.F1)
             {
 
+                textbox1.Visibility = Visibility.Visible;
+                btn_Start_Copy1.Visibility = Visibility.Visible;
+
                 var position = MouseController.GetCursorPosition();
 
-                lb_Agents.SelectedIndex = 0;
+                //Agent.agentCoordinates.Add("default", new Coordinate(position.X, position.Y));
 
-                if (Agent.agentCoordinates.ContainsKey(lb_Agents.Items[0].ToString().ToLower()))
-                {
-                    Agent.agentCoordinates.Remove(lb_Agents.SelectedItem.ToString().ToLower());
-                    lb_Agents.Items.Clear();
-                }
+                //string[] agents = Agent.getAgents();
+                //foreach (string agent in agents)
+                //{
+                //    lb_Agents.Items.Add(agent);
+                //}
 
-                Agent.agentCoordinates.Add("default", new Coordinate(position.X, position.Y));
+                //if (System.IO.File.Exists("config.ini"))
+                //{
+                //    System.IO.File.WriteAllText("config.ini", "default=" + position.X + "," + position.Y);
+                //}
 
-                string[] agents = Agent.getAgents();
-                foreach (string agent in agents)
-                {
-                    lb_Agents.Items.Add(agent);
-                }
+                Agent.SelectedAgent = new Coordinate(position.X, position.Y);
 
-                if (System.IO.File.Exists("config.ini"))
-                {
-                    System.IO.File.WriteAllText("config.ini", "default=" + position.X + "," + position.Y);
-                }
-
-                MessageBox.Show(position.X + ", " + position.Y + " Position saved to Default");
+                labelXY.Text = Agent.SelectedAgent.X + ", " + Agent.SelectedAgent.Y;
 
                 btn_Start.IsEnabled = true;
                 btn_Stop.IsEnabled = true;
                 lbl_Status.Text = "Done";
-                lbl_Status.Foreground = Brushes.Red;
+                lbl_Status.Foreground = Brushes.Green;
 
                 this.PreviewKeyDown -= MainWindow_PreviewKeyDown;
             }
@@ -178,5 +188,37 @@ namespace valorant_instalock
 
         private void btn_Stop_Click(object sender, RoutedEventArgs e)
         => StopVoid(false);
+
+        private void textbox1_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textbox1.Text != "")
+            {
+                textbox1.Clear();
+            }
+        }
+
+        private void textbox1_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textbox1.Text == "")
+            {
+                textbox1.Text = "Agent name";
+            }
+        }
+
+        private void btn_Start_Copy1_Click(object sender, RoutedEventArgs e)
+        {
+            //save position
+            MyIni.Write(textbox1.Text, Agent.SelectedAgent.X + "," + Agent.SelectedAgent.Y);
+            lb_Agents.Items.Clear();
+
+            string[] keys = MyIni.ReadAllKeysInSection("Valorant Instalocker");
+            foreach (string key in keys)
+            {
+                lb_Agents.Items.Add(key);
+            }
+
+            textbox1.Visibility = Visibility.Hidden;
+            btn_Start_Copy1.Visibility = Visibility.Hidden;
+        }
     }
 }

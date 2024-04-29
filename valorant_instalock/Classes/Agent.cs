@@ -1,24 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using valorant_instalock.Models;
 
 namespace valorant_instalock.Classes
 {
     public static class Agent
     {
-        public static Coordinate SelectedAgent { get; set; }
+        static IniFile MyIni = new IniFile("agent.ini");
 
-        public static Dictionary<string, Coordinate> agentCoordinates = new Dictionary<string, Coordinate>
-        {
-        };
+
+        public static Coordinate SelectedAgent { get; set; }
+        public static string SelectedagentName { get; set; }
 
         public static Coordinate GetAgentCoordinatesByName(string agentName)
-        => agentCoordinates.Where(c => c.Key == agentName).Select(c => c.Value).FirstOrDefault();
+        {
+            var newX = Convert.ToInt32(MyIni.Read(agentName).Split(',').First());
+            var newY = Convert.ToInt32(MyIni.Read(agentName).Split(',').Last());
 
-        public static string GetAgentNameByCoordinates(int X, int Y)
-        => agentCoordinates.Where(c => c.Value.X == X && c.Value.Y == Y).Select(c => c.Key).FirstOrDefault();
-
-        public static string[] getAgents()
-        => agentCoordinates.Keys.ToArray();
+            return new Coordinate(newX, newY);
+        }
     }
 }
