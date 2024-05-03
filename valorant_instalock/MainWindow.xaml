@@ -115,6 +115,13 @@
                 FontWeight="SemiBold"
                 Margin="79,93,0,0" Grid.ColumnSpan="2" Width="281" Grid.Column="1"/>
             <Image Grid.Column="2" x:Name="pictureBox" HorizontalAlignment="Left" Height="100" Margin="198,99,0,0" VerticalAlignment="Top" Width="100" Source="logo.ico"/>
+            <TextBlock Text="1920x1080 only"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                FontSize="20"
+                Foreground="Gray"
+                FontWeight="SemiBold"
+                Margin="71,345,0,0" Grid.ColumnSpan="2" Grid.Column="1"/>
         </Grid>
     </Grid>
 </Window>

@@ -13,7 +13,7 @@ namespace valorant_instalock.Classes
         internal static void LeftClick()
         {
             User32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-            Thread.Sleep(20);
+            Thread.Sleep(150);
             User32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
         }
 

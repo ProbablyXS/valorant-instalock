@@ -9,7 +9,12 @@ namespace valorant_instalock.Classes
             "Breach",
             "Neon",
             "Brimstone",
+            "Clove",
             "Cypher",
+            "Deadlock",
+            "Fade",
+            "Gekko",
+            "Iso",
             "Jett",
             "Killjoy",
             "Omen",
@@ -21,16 +26,6 @@ namespace valorant_instalock.Classes
             "Viper"
         };
 
-        public static Coordinate SelectedAgent { get; set; }
         public static string SelectedagentName { get; set; }
-
-        public static Coordinate GetAgentCoordinatesByName(string agentName)
-        {
-            //var newX = Convert.ToInt32(MyIni.Read(agentName).Split(',').First());
-            //var newY = Convert.ToInt32(MyIni.Read(agentName).Split(',').Last());
-
-            //return new Coordinate(newX, newY);
-            return new Coordinate(0, 0);
-        }
     }
 }

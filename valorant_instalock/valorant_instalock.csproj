@@ -34,7 +34,9 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <WarningLevel>0</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>logo.ico</ApplicationIcon>
@@ -143,14 +145,27 @@
     <Resource Include="logo.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\lockImage.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="License-LGPL.txt" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Resource Include="Resources\neon\neon_1080p.png" />
-    <Resource Include="Resources\neon\neon_720p.png" />
+    <Resource Include="Resources\agents\brimstone\brimstone_1080p.png" />
+    <Resource Include="Resources\agents\clove\clove_1080p.png" />
+    <Resource Include="Resources\agents\cypher\cypher_1080p.png" />
+    <Resource Include="Resources\agents\deadlock\deadlock_1080p.png" />
+    <Resource Include="Resources\agents\fade\fade_1080p.png" />
+    <Resource Include="Resources\agents\gekko\gekko_1080p.png" />
+    <Resource Include="Resources\agents\iso\iso_1080p.png" />
+    <Resource Include="Resources\agents\jett\jett_1080p.png" />
+    <Resource Include="Resources\agents\lockImage.png" />
+    <Resource Include="Resources\agents\neon\neon_1080p.png" />
+    <Resource Include="Resources\agents\neon\neon_720p.png" />
+    <Resource Include="Resources\agents\omen\omen_1080p.png" />
+    <Resource Include="Resources\agents\phoenix\phoenix_1080p.png" />
+    <Resource Include="Resources\agents\raze\raze_1080p.png" />
+    <Resource Include="Resources\agents\reyna\reyna_1080p.png" />
+    <Resource Include="Resources\agents\sage\sage_1080p.png" />
+    <Resource Include="Resources\agents\sova\sova_1080p.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EMGU.CV.4.1.1.3497\build\EMGU.CV.targets" Condition="Exists('..\packages\EMGU.CV.4.1.1.3497\build\EMGU.CV.targets')" />
