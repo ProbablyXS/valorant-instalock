@@ -16,4 +16,5 @@ Selects your agents with coordinates. So if the coordinates wrong for you, chang
  - Click **Start** button
  - Start searching for a match on Valorant
 
- - ![2c237fc2a698a414a6c4787411df0d1c](https://github.com/ProbablyXS/valorant-instalock/assets/99107085/58f75642-0654-4d8a-aeca-296006e593ca)
+![ezgif-7-a6ed438c18](https://github.com/ProbablyXS/valorant-instalock/assets/99107085/359506bc-77dd-4d22-a979-153cc23c6239)
+
