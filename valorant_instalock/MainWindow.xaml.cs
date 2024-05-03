@@ -1,77 +1,167 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using valorant_instalock.Classes;
 using valorant_instalock.Models;
+using Brushes = System.Windows.Media.Brushes;
 using Timer = System.Timers.Timer;
+using System.Diagnostics;
+using System.Windows.Media.Imaging;
+using System.Reflection;
 
 namespace valorant_instalock
 {
     public partial class MainWindow : Window
     {
+        public string processGameName = "VALORANT-Win64-Shipping";
+
+        public PerformanceCounter cpuCounter;
+        public PerformanceCounter ramCounter;
+
+        // Get process by name
+        private Process GetProcessByName(string name)
+        {
+            Process[] processes = Process.GetProcessesByName(name);
+            if (processes.Length > 0)
+            {
+                return processes[0];
+            }
+            return null;
+        }
+
+        // Get window rect
+        [DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr hwnd, ref Rectangle rect);
+
+        private static Rectangle GetWindowRect(IntPtr hwnd)
+        {
+            Rectangle rect = new Rectangle();
+            GetWindowRect(hwnd, ref rect);
+            return rect;
+        }
+
         public MainWindow()
         {
             InitializeComponent();
-            textbox1.Visibility = Visibility.Hidden;
-            btn_Start_Copy1.Visibility = Visibility.Hidden;
+
+
+            lb_Agents.Items.Clear();
+            foreach (string agent in Agent.AgentsList.OrderBy(c => c).ToArray())
+            {
+                lb_Agents.Items.Add(agent);
+            }
         }
 
-        Timer recognitionTimer = new Timer() { Interval = 300 };
+        private Thread overlayThread;
+
         Timer valorantTimer = new Timer() { Interval = 5000 };
-        
-        IniFile MyIni = new IniFile("agent.ini");
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            recognitionTimer.Elapsed += RecognitionTimer_Elapsed;
+            overlayThread = new Thread(getCpuAndResolutionGame);
+            overlayThread.Start();
+
+            lb_Agents.SelectedIndex = 0;
+            Agent.SelectedagentName = lb_Agents.SelectedItem.ToString();
+            Agent.SelectedAgent = Agent.GetAgentCoordinatesByName(lb_Agents.SelectedItem.ToString().ToLower());
+            labelagent.Text = "Selected Agent: " + Agent.SelectedagentName;
+
             valorantTimer.Elapsed += ValorantTimer_Elapsed;
 
-            if (System.IO.File.Exists("agent.ini"))
-            {
-                string[] keys = MyIni.ReadAllKeysInSection("Valorant Instalocker");
-                foreach (string key in keys)
-                {
-                    lb_Agents.Items.Add(key);
-                }
-                //string[] agents = data;
-                //foreach (var agent in data)
-                //{
-                //    lb_Agents.Items.Add(agent);
-                //}
-            }
         }
+
+        public int Xresolution { get; set; }
+        public int Yresolution { get; set; }
 
         private void ValorantTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (Process.GetProcessesByName("VALORANT-Win64-Shipping").Length <= 0)
+            if (Process.GetProcessesByName(processGameName).Length <= 0)
             {
-                StopVoid(false);
+                StopVoidAsync(false);
             }
         }
 
-        private void RecognitionTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private async void getCpuAndResolutionGame()
         {
-            var coords = ImageRecognition.GetCoordinates(Properties.Resources.lockImage);
-            if (coords != null)
+            cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+
+            while (true)
             {
-                StopVoid(true);
-                MouseController.MoveAndLeftClick(Agent.SelectedAgent.X, Agent.SelectedAgent.Y);
-                Thread.Sleep(10);
-                for (int i = 0; i < 5; i++)
+                // Get and display screen resolution of a specific process
+                Process process = GetProcessByName(processGameName);
+                if (process != null)
                 {
-                    MouseController.LeftClick();
+                    Rectangle rect = GetWindowRect(process.MainWindowHandle);
+
+                    if (rect.Height >= 1070 && rect.Height <= 1080)
+                    {
+                        rect.Height = 1080;
+                    }
+
+                    if (rect.Height >= 700 && rect.Height <= 720)
+                    {
+                        rect.Height = 720;
+                    }
+
+                    Xresolution = rect.Width;
+                    Yresolution = rect.Height;
+
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        labelCPU.Text = "CPU: " + ((int)cpuCounter.NextValue()) + "%";
+                        labelResolution.Foreground = Brushes.Gray;
+                        labelResolution.Text = "Resolution: " + Xresolution.ToString() + "x" + Yresolution.ToString();
+                    });
                 }
-                MouseController.MoveAndLeftClick(coords.X, coords.Y);
-                Thread.Sleep(10);
-                for (int i = 0; i < 5; i++)
+                else
                 {
-                    MouseController.LeftClick();
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        labelResolution.Foreground = Brushes.Red;
+                        labelResolution.Text = "Valorant game is not running";
+                    });
                 }
+
+                await Task.Delay(1000);
+            }
+        }
+
+        private async void RecognitionTimer_ElapsedAsync()
+        {
+            await Task.Delay(10);
+
+            while (true)
+            {
+
+                Thread.Sleep(500);
+
+                //var bmp = new Bitmap(Image.FromFile("agents/neon/neon_1080p.png"));
+                //MessageBox.Show(bmp.Size.ToString());
+
+                var coords = ImageRecognition.GetCoordinates(Image.FromFile("agents/lockImage.png"));
+                var agents = ImageRecognition.GetCoordinates(Image.FromFile("agents/" + Agent.SelectedagentName.ToLower() + "/" + Agent.SelectedagentName.ToLower() + "_" + Yresolution + "p.png"));
+                if (coords != null && agents != null)
+                {
+                    MouseController.MoveAndLeftClick(agents.X, agents.Y);
+
+                    Thread.Sleep(100);
+
+                    MouseController.MoveAndLeftClick(coords.X, coords.Y);
+
+                    Thread.Sleep(100);
+
+                    StopVoidAsync(true);
+                    return;
+                }
+
             }
         }
 
@@ -84,12 +174,11 @@ namespace valorant_instalock
 
             Agent.SelectedagentName = lb_Agents.SelectedItem.ToString();
 
-            Agent.SelectedAgent = Agent.GetAgentCoordinatesByName(lb_Agents.SelectedItem.ToString().ToLower());
-            labelXY.Text = "X: " + Agent.SelectedAgent.X + " Y: " + Agent.SelectedAgent.Y;
             labelagent.Text = "Selected Agent: " + Agent.SelectedagentName;
-            //lbl_SelectedAgent.Text = Agent.GetAgentNameByCoordinates(Agent.SelectedAgent.X, Agent.SelectedAgent.Y);
 
-
+            var uriSource = new Uri(Environment.CurrentDirectory + "/agents/" + Agent.SelectedagentName.ToLower() + "/" + Agent.SelectedagentName.ToLower() + "_" + Yresolution + "p.png", UriKind.RelativeOrAbsolute);
+            pictureBox.Source = new BitmapImage(uriSource);
+            //pictureBox.Source = new BitmapImage(new Uri("agents/" + Agent.SelectedagentName.ToLower() + "/" + Agent.SelectedagentName.ToLower() + "_" + Yresolution + "p.png", UriKind.RelativeOrAbsolute));
         }
 
         private void btn_Start_Click(object sender, RoutedEventArgs e)
@@ -100,25 +189,26 @@ namespace valorant_instalock
                 return;
             }
 
-            if (Process.GetProcessesByName("VALORANT-Win64-Shipping").Length > 0)
+            if (Process.GetProcessesByName(processGameName).Length > 0)
             {
                 valorantTimer.Start();
                 btn_Start.IsEnabled = false;
                 btn_Stop.IsEnabled = true;
                 lbl_Status.Text = "Watching the screen...";
                 lbl_Status.Foreground = Brushes.ForestGreen;
-                recognitionTimer.Start();
+                overlayThread = new Thread(RecognitionTimer_ElapsedAsync);
+                overlayThread.Start();
             }
             else MessageBox.Show("Please run Valorant before starting...");
         }
 
         private void btn_new_Click(object sender, RoutedEventArgs e)
         {
-            if (Process.GetProcessesByName("VALORANT-Win64-Shipping").Length > 0)
+            if (Process.GetProcessesByName(processGameName).Length > 0)
             {
                 btn_Start.IsEnabled = false;
-                btn_Stop.IsEnabled = true;
-                lbl_Status.Text = "Watching the screen...";
+                btn_Stop.IsEnabled = false;
+                lbl_Status.Text = "Press F10 for screen to point";
                 lbl_Status.Foreground = Brushes.ForestGreen;
 
                 // Subscribe to key down event
@@ -134,30 +224,11 @@ namespace valorant_instalock
             if (e.Key == Key.F1)
             {
 
-                textbox1.Visibility = Visibility.Visible;
-                btn_Start_Copy1.Visibility = Visibility.Visible;
-
                 var position = MouseController.GetCursorPosition();
-
-                //Agent.agentCoordinates.Add("default", new Coordinate(position.X, position.Y));
-
-                //string[] agents = Agent.getAgents();
-                //foreach (string agent in agents)
-                //{
-                //    lb_Agents.Items.Add(agent);
-                //}
-
-                //if (System.IO.File.Exists("config.ini"))
-                //{
-                //    System.IO.File.WriteAllText("config.ini", "default=" + position.X + "," + position.Y);
-                //}
 
                 Agent.SelectedAgent = new Coordinate(position.X, position.Y);
 
-                labelXY.Text = Agent.SelectedAgent.X + ", " + Agent.SelectedAgent.Y;
-
                 btn_Start.IsEnabled = true;
-                btn_Stop.IsEnabled = true;
                 lbl_Status.Text = "Done";
                 lbl_Status.Foreground = Brushes.Green;
 
@@ -165,10 +236,19 @@ namespace valorant_instalock
             }
         }
 
-        private void StopVoid(bool isSuccessful)
+        private async Task StopVoidAsync(bool isSuccessful)
         {
+
+            this.Dispatcher.Invoke(() =>
+            {
+                btn_Stop.IsEnabled = false;
+                lbl_Status.Foreground = Brushes.Gray;
+                lbl_Status.Text = "Loading...";
+            });
+
+            await Task.Delay(500);
             valorantTimer.Stop();
-            recognitionTimer.Stop();
+            overlayThread.Join(2000);
             this.Dispatcher.Invoke(() =>
             {
                 btn_Start.IsEnabled = true;
@@ -180,45 +260,15 @@ namespace valorant_instalock
                 }
                 else
                 {
-                    lbl_Status.Text = "Selected and stopped...";
-                    lbl_Status.Foreground = Brushes.CornflowerBlue;
+                    lbl_Status.Text = "Sucessfully!";
+                    lbl_Status.Foreground = Brushes.Green;
                 }
             });
         }
 
         private void btn_Stop_Click(object sender, RoutedEventArgs e)
-        => StopVoid(false);
-
-        private void textbox1_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (textbox1.Text != "")
-            {
-                textbox1.Clear();
-            }
-        }
-
-        private void textbox1_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (textbox1.Text == "")
-            {
-                textbox1.Text = "Agent name";
-            }
-        }
-
-        private void btn_Start_Copy1_Click(object sender, RoutedEventArgs e)
-        {
-            //save position
-            MyIni.Write(textbox1.Text, Agent.SelectedAgent.X + "," + Agent.SelectedAgent.Y);
-            lb_Agents.Items.Clear();
-
-            string[] keys = MyIni.ReadAllKeysInSection("Valorant Instalocker");
-            foreach (string key in keys)
-            {
-                lb_Agents.Items.Add(key);
-            }
-
-            textbox1.Visibility = Visibility.Hidden;
-            btn_Start_Copy1.Visibility = Visibility.Hidden;
+            StopVoidAsync(false);
         }
     }
 }

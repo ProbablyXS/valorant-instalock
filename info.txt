@@ -1,0 +1,2 @@
+Ajouter la fonction pour modifier l'image automatiquement en fonction de la résolution du jeu directement.
+Ajouter toutes les images des agents

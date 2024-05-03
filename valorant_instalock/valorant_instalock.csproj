@@ -104,7 +104,6 @@
     <Compile Include="Classes\Helpers\GDI32.cs" />
     <Compile Include="Classes\Helpers\User32.cs" />
     <Compile Include="Classes\ImageRecognition.cs" />
-    <Compile Include="Classes\IniFile.cs" />
     <Compile Include="Classes\MouseController.cs" />
     <Compile Include="Classes\ScreenCapture.cs" />
     <Compile Include="MainWindow.xaml.cs">
@@ -148,6 +147,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="License-LGPL.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\neon\neon_1080p.png" />
+    <Resource Include="Resources\neon\neon_720p.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EMGU.CV.4.1.1.3497\build\EMGU.CV.targets" Condition="Exists('..\packages\EMGU.CV.4.1.1.3497\build\EMGU.CV.targets')" />
